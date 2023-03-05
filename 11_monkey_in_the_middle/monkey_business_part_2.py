@@ -8,16 +8,23 @@ def main(descriptions: list[list[str]]):
     for description in descriptions:
         monkeys.append(Monkey(description))
         print(description)
-    for i in range(20):
+
+    mod_num = 1
+    for monkey in monkeys:
+        mod_num *= monkey.test_num
+
+    for i in range(10000):
         for monkey in monkeys:
             for item in monkey.items:
-                item_worry = floor(monkey.operation(item)/3.0)
+                item_worry = monkey.operation(item) % mod_num
                 monkey.throws += 1
                 if item_worry % monkey.test_num == 0:
                     monkeys[monkey.throw_if_true].items.append(item_worry)
                 else: 
                     monkeys[monkey.throw_if_false].items.append(item_worry)
             monkey.items = []
+        if i % 100 == 0:
+            print(i)
     
     for monkey in monkeys:
         print(monkey)

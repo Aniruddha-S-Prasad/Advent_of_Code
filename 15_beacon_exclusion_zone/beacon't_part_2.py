@@ -1,3 +1,4 @@
+
 from dataclasses import dataclass
 from time import time
 
@@ -44,29 +45,31 @@ def resolve_coverage(coverage_desc: list[int]) -> list[int]:
     return
 
 
-def main(loc_data: list[str], y_check: int):
+def main(loc_data: list[str], search_size: int):
     sb_pairs = [SensorBeaconPair(*list(map(parse_location, line.split(':')))) for line in loc_data]
-    occupied_locs = set([x.sensor_loc for x in sb_pairs] + [x.beacon_loc for x in sb_pairs])
 
-    coverage = []
     loop_start = time()
-    for sensor in sb_pairs:
-        y_dist = abs(sensor.sensor_loc[1] - y_check)
-        if y_dist < sensor.distance:
-            available_x = sensor.distance - y_dist
-            left_lim = sensor.sensor_loc[0] - available_x
-            right_lim = sensor.sensor_loc[0] + available_x
-            coverage.append([left_lim, right_lim])
-    resolve_coverage(coverage)
+    for y_check in range(search_size):
+        coverage = []
 
-    num_devices_in_row = 0
-    for location in occupied_locs:
-        if location[1] == y_check:
-            num_devices_in_row +=1
-    
-    num_covered_locs = sum([coverage_item[1] + 1 - coverage_item[0] for coverage_item in coverage]) - num_devices_in_row
+        for sensor in sb_pairs:
+            y_dist = abs(sensor.sensor_loc[1] - y_check)
+            if y_dist < sensor.distance:
+                available_x = sensor.distance - y_dist
+                left_lim = sensor.sensor_loc[0] - available_x
+                right_lim = sensor.sensor_loc[0] + available_x
+                coverage.append([left_lim if left_lim > 0 else 0, right_lim if right_lim < search_size else search_size])
+        resolve_coverage(coverage)
+        
+        if (y_check % 400_000 == 0):
+            print(f"Completion: {y_check*100/search_size}") 
+
+        if (len(coverage) > 1):
+            print(y_check, coverage)
+            print((coverage[0][1] + 1)*4_000_000 + y_check)
+            break
+
     loop_end = time()
-    print(f'Covered locations in row {y_check} is: {num_covered_locs}')
     print('Time in loop:')
     print(f'------ {loop_end-loop_start} seconds ------')
 
@@ -74,12 +77,12 @@ if __name__ == "__main__":
     demo = False
     if demo:
         input_filename = "demo.txt"
-        y_check = 10
+        search_size = 20
     else:
         input_filename = "input.txt"
-        y_check = 2_000_000
+        search_size = 4_000_000
     
     with open(input_filename, 'r') as input_file:
         input_data = [line.strip() for line in input_file]
    
-    main(input_data, y_check)
+    main(input_data, search_size)

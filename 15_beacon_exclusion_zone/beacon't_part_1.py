@@ -1,5 +1,6 @@
+import numpy as np
 from dataclasses import dataclass
-
+from time import time
 
 def manhattan_distance(loc_a: tuple[int, int], loc_b: tuple[int, int]) -> int:
     dist_x = abs(loc_b[0] - loc_a[0])
@@ -28,54 +29,43 @@ def parse_location(loc_str: str) -> tuple[int, int]:
     return location
 
 
-def main(loc_data: list[str], y_check: int, part_2: bool):
+def main(loc_data: list[str], y_check: int):
     sb_pairs = [SensorBeaconPair(*list(map(parse_location, line.split(':')))) for line in loc_data]
+    occupied_locs = set([x.sensor_loc for x in sb_pairs] + [x.beacon_loc for x in sb_pairs])
 
     x_min = min([pair.sensor_loc[0] - pair.distance for pair in sb_pairs])
     x_max = max([pair.sensor_loc[0] + pair.distance for pair in sb_pairs])
+    x_row = np.zeros(x_max-x_min, dtype=np.int32)
 
-    occupied_locs = set([x.sensor_loc for x in sb_pairs] + [x.beacon_loc for x in sb_pairs])
+    loop_start = time()
+    for sensor in sb_pairs:
+        y_dist = abs(sensor.sensor_loc[1] - y_check)
+        if y_dist < sensor.distance:
+            available_x = sensor.distance - y_dist
+            left_lim = sensor.sensor_loc[0] - available_x - x_min
+            right_lim = sensor.sensor_loc[0] + available_x - x_min
+            x_row[left_lim:right_lim+1] = 1
 
-    covered_locs = 0
-    lock_on = False
-    captured_sensor = None
-    for x in range(x_min, x_max + 1):
-        if ((x, y_check) in occupied_locs):
-            continue
-        
-        if lock_on and (captured_sensor is not None):
-            if manhattan_distance((x, y_check), captured_sensor.sensor_loc) <= sensor.distance:
-                covered_locs +=1
-            else:
-                lock_on = False
-                for sensor in sb_pairs:
-                    if manhattan_distance((x, y_check), sensor.sensor_loc) <= sensor.distance:
-                        covered_locs += 1
-                        captured_sensor = sensor
-                        lock_on = True
-                        break
-        else:
-            for sensor in sb_pairs:
-                if manhattan_distance((x, y_check), sensor.sensor_loc) <= sensor.distance:
-                    covered_locs += 1
-                    captured_sensor = sensor
-                    lock_on = True
-                    break
-
-    print(covered_locs)
+    for location in occupied_locs:
+        if (location[1] == y_check):
+            x_row[location[0]-x_min] = 0
     
+    num_covered_locs = np.sum(x_row)
+    loop_end = time()
+    print(f'Covered locations in row {y_check} is: {num_covered_locs}')
+    print('Time in loop:')
+    print(f'------ {loop_end-loop_start} seconds ------')
 
 if __name__ == "__main__":
     demo = False
-    part_2 = False
     if demo:
         input_filename = "demo.txt"
         y_check = 10
     else:
         input_filename = "input.txt"
-        y_check = 2000000
+        y_check = 2_000_000
     
     with open(input_filename, 'r') as input_file:
         input_data = [line.strip() for line in input_file]
-    
-    main(input_data, y_check, part_2)
+   
+    main(input_data, y_check)

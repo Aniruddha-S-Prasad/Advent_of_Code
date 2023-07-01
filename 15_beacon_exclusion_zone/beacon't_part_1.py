@@ -61,10 +61,7 @@ def main(loc_data: list[str], y_check: int):
     sb_pairs = [SensorBeaconPair(*list(map(parse_location, line.split(':')))) for line in loc_data]
     occupied_locs = set([x.sensor_loc for x in sb_pairs] + [x.beacon_loc for x in sb_pairs])
 
-    x_min = min([pair.sensor_loc[0] - pair.distance for pair in sb_pairs])
-    x_max = max([pair.sensor_loc[0] + pair.distance for pair in sb_pairs])
     coverage = []
-
     loop_start = time()
     for sensor in sb_pairs:
         y_dist = abs(sensor.sensor_loc[1] - y_check)

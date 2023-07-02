@@ -94,7 +94,7 @@ def main(input_data: list[str]):
     minutes = 30
     max_benifit = benifit_calculator(minutes, start_valve, unexplored)
     end_time = time()
-    print(f'Maximum pressure that can be release: {max_benifit}')
+    print(f'Maximum pressure that can be released: {max_benifit}')
     print(f'------ {end_time-start_time} seconds ------')
     
 

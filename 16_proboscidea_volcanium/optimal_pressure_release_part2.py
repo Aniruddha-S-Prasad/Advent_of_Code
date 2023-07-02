@@ -1,6 +1,8 @@
 from collections import deque, namedtuple
 from operator import attrgetter
+from itertools import combinations
 from time import time
+import os
 
 
 class Valve:
@@ -76,14 +78,12 @@ def benifit_calculator(minutes_left: int, start_valve: Valve, unexplored: set[Va
         return 0
     else:
         benifits = []
-        for destination_valve_man in unexplored:
-            cost = len(start_valve.paths[destination_valve_man.name]) + 1
+        for destination_valve in unexplored:
+            cost = len(start_valve.paths[destination_valve.name]) + 1
             if (minutes_left - cost) <= 0:
                 benifit = 0
             else:
-                benifit = (minutes_left - cost)*destination_valve_man.flow_rate + benifit_calculator(minutes_left - cost, destination_valve_man, unexplored - {destination_valve_man})
-            # for destination_valve_elephant in unexplored - {destination_valve_man}:
-
+                benifit = (minutes_left - cost)*destination_valve.flow_rate + benifit_calculator(minutes_left - cost, destination_valve, unexplored - {destination_valve})
             benifits.append(benifit)
         return max(benifits)
 
@@ -101,10 +101,21 @@ def main(input_data: list[str]):
     
     start_valve = next(filter(lambda valve: valve.name == 'AA', valve_list))
     unexplored = set(filter(lambda valve: (valve != start_valve) and (valve.flow_rate != 0), valve_list))
-    minutes = 30
-    max_benifit = benifit_calculator(minutes, start_valve, unexplored)
+    minutes = 26
+    half_way = len(unexplored)//2 + 1
+    benefits = []
+    for num_nodes in range(half_way):
+        for index, unexplored_by_human in enumerate(combinations(unexplored, num_nodes)):
+            unexplored_by_elephant = unexplored - set(unexplored_by_human)
+            human_benefit = benifit_calculator(minutes, start_valve, set(unexplored_by_human))
+            elephant_benefit = benifit_calculator(minutes, start_valve, unexplored_by_elephant)
+            benefits.append(human_benefit + elephant_benefit)
+            if index % 10 == 0:
+                os.system('cls')
+                print(f'Dividing into {num_nodes}, {len(unexplored) - num_nodes}, iteration {index}')
+    max_benefit = max(benefits)
     end_time = time()
-    print(f'Maximum pressure that can be released: {max_benifit}')
+    print(f'Maximum pressure that can be released: {max_benefit}')
     print(f'------ {end_time-start_time} seconds ------')
     
 

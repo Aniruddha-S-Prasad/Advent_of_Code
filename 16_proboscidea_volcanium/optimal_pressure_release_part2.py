@@ -76,12 +76,14 @@ def benifit_calculator(minutes_left: int, start_valve: Valve, unexplored: set[Va
         return 0
     else:
         benifits = []
-        for destination_valve in unexplored:
-            cost = len(start_valve.paths[destination_valve.name]) + 1
+        for destination_valve_man in unexplored:
+            cost = len(start_valve.paths[destination_valve_man.name]) + 1
             if (minutes_left - cost) <= 0:
                 benifit = 0
             else:
-                benifit = (minutes_left - cost)*destination_valve.flow_rate + benifit_calculator(minutes_left - cost, destination_valve, unexplored - {destination_valve})
+                benifit = (minutes_left - cost)*destination_valve_man.flow_rate + benifit_calculator(minutes_left - cost, destination_valve_man, unexplored - {destination_valve_man})
+            # for destination_valve_elephant in unexplored - {destination_valve_man}:
+
             benifits.append(benifit)
         return max(benifits)
 

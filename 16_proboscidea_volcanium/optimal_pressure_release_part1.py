@@ -1,5 +1,6 @@
 from collections import deque, namedtuple
 from operator import attrgetter
+from time import time
 
 
 class Valve:
@@ -82,6 +83,7 @@ def benifit_calculator(minutes_left: int, start_valve: Valve, unexplored: set[Va
 
 
 def main(input_data: list[str]):
+    start_time = time()
     valve_list = [valve_data_parser(valve_desc) for valve_desc in input_data]
     valve_list.sort(key=attrgetter('flow_rate'), reverse=True)
     for valve in valve_list:
@@ -90,7 +92,10 @@ def main(input_data: list[str]):
     start_valve = next(filter(lambda valve: valve.name == 'AA', valve_list))
     unexplored = set(filter(lambda valve: (valve != start_valve) and (valve.flow_rate != 0), valve_list))
     minutes = 30
-    print(benifit_calculator(minutes, start_valve, unexplored))
+    max_benifit = benifit_calculator(minutes, start_valve, unexplored)
+    end_time = time()
+    print(f'Maximum pressure that can be release: {max_benifit}')
+    print(f'------ {end_time-start_time} seconds ------')
     
 
 if __name__ == "__main__":
